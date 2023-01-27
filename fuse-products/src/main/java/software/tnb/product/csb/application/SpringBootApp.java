@@ -74,8 +74,22 @@ public abstract class SpringBootApp extends App {
             customizeDependencies(integrationBuilder.getDependencies());
 
             customizePlugins(integrationBuilder.getPlugins());
-
+            //clear maven cache first
             BuildRequest.Builder requestBuilder = new BuildRequest.Builder()
+                .withBaseDirectory(TestConfiguration.appLocation().resolve(name))
+                .withGoals("dependency:purge-local-repository")
+                .withProperties(Map.of(
+                    "actTransitively", "false",
+                    "reResolve","false"
+                ))
+                .withLogFile(getLogPath(Phase.BUILD))
+                .withLogMarker(LogStream.marker(name + "_clean", Phase.BUILD));
+
+            LOG.info("Building {} application project", name);
+            Maven.invoke(requestBuilder.build());
+
+            //build the sb application
+            requestBuilder = new BuildRequest.Builder()
                 .withBaseDirectory(TestConfiguration.appLocation().resolve(name))
                 .withGoals("clean", "package")
                 .withProperties(Map.of(
