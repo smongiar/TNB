@@ -103,6 +103,7 @@
         <git.changelog.maven.plugin>1.95.2</git.changelog.maven.plugin>
         <okhttp-version>4.10.0</okhttp-version>
         <gson-version>2.10</gson-version>
+        <bouncycastle.version>1.72</bouncycastle.version>
     </properties>
 
     <dependencyManagement>

@@ -1,5 +1,6 @@
 package software.tnb.common.utils;
 
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,7 +140,7 @@ public final class HTTPUtils {
     static {
         try {
             if (FIPSUtils.isFipsEnabled()) {
-                sslContext = SSLContext.getDefault();
+                sslContext = SSLContext.getInstance("TLS", new BouncyCastleJsseProvider()); //SSLContext.getDefault();
             } else {
                 sslContext = SSLContext.getInstance("SSL");
                 sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
