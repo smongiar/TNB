@@ -33,7 +33,8 @@ public abstract class MySQL extends SQL {
             "MYSQL_DATABASE", account().database(),
             "MYSQL_USER", account().username(),
             "MYSQL_PASSWORD", account().password(),
-            "MYSQL_ROOT_PASSWORD", "my-secret-pw"
+            "MYSQL_ROOT_PASSWORD", "my-secret-pw",
+            "MYSQL_DEFAULTS_FILE", "/tmp/custom/my.cnf"
         );
     }
 

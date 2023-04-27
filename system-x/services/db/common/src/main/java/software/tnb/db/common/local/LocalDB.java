@@ -6,6 +6,12 @@ import software.tnb.db.common.service.SQL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
+import org.testcontainers.utility.MountableFile;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class LocalDB implements Deployable {
     private static final Logger LOG = LoggerFactory.getLogger(LocalDB.class);
@@ -15,6 +21,12 @@ public class LocalDB implements Deployable {
     public LocalDB(SQL sqlService, int port, WaitStrategy waitStrategy) {
         this.sqlService = sqlService;
         this.container = new DBContainer(sqlService, port, waitStrategy);
+    }
+
+    public LocalDB(SQL sqlService, int port, WaitStrategy waitStrategy, String sharedFolderPath) {
+        this.sqlService = sqlService;
+        this.container = new DBContainer(sqlService, port, waitStrategy, sharedFolderPath);
+
     }
 
     @Override

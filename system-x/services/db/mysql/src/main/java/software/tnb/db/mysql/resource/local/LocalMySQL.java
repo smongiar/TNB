@@ -8,13 +8,20 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import com.google.auto.service.AutoService;
 
+import java.nio.file.Paths;
+
 @AutoService(MySQL.class)
 public class LocalMySQL extends MySQL implements Deployable {
-    private final LocalDB localDb = new LocalDB(this, PORT, Wait.forLogMessage(".*ready for connections.* port: " + PORT + ".*", 1));
+    private LocalDB localDb;
+
+    public LocalMySQL() {
+        localDb = new LocalDB(this, PORT, Wait.forLogMessage(".*ready for connections.* port: " + PORT + ".*", 1),
+            Paths.get(LocalMySQL.class.getResource("/config/my.cnf").toString()).toString());
+    }
 
     @Override
     public String jdbcConnectionUrl() {
-        return String.format("jdbc:mysql://localhost:%d/%s", localDb.getPort(), account().database());
+        return String.format("jdbc:mysql://localhost:%d/%s?tlsVersions=%s&sslMode=DISABLED", localDb.getPort(), account().database(), "TLSv1.2");
     }
 
     @Override
