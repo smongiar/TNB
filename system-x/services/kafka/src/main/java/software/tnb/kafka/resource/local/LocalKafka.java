@@ -33,6 +33,16 @@ public class LocalKafka extends Kafka implements Deployable, WithDockerImage {
     }
 
     @Override
+    public void createNodePool(String name, String storageType, String metadataType, int replicas) {
+        // no-op
+    }
+
+    @Override
+    public void createUser(String name) {
+        // no-op
+    }
+
+    @Override
     public void deploy() {
         Network network = Network.newNetwork();
 

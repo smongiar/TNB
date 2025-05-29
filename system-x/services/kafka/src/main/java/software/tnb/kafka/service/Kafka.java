@@ -31,7 +31,15 @@ public abstract class Kafka extends Service<KafkaAccount, NoClient, KafkaValidat
         createTopic(name, 1, 1);
     }
 
+    public void createNodePool(String name) {
+        createNodePool(name, "ephemeral", "shared", 1);
+    }
+
     public abstract void createTopic(String name, int partitions, int replicas);
+
+    public abstract void createUser(String name);
+
+    public abstract void createNodePool(String name, String storageType, String metadataType, int replicas);
 
     public <T> KafkaValidation<T> validation(Class<T> clazz) {
         if (!validations.containsKey(clazz)) {
