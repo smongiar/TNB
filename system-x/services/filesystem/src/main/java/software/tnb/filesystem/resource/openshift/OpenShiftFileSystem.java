@@ -108,15 +108,54 @@ public class OpenShiftFileSystem extends FileSystem implements OpenshiftDeployab
     }
 
     @Override
-    public Path createTempDirectory() throws IOException {
-        // use deployment/*
-        return Path.of(directory);
+    public Path createDirectory(Path path) throws IOException {
+        String podLabelKey = "app.kubernetes.io/name";
+        final String podName = getPodName(podLabelKey, podLabelValue);
+        final Pod pod = OpenshiftClient.get().getPod(podName);
+        final String integrationContainer = OpenshiftClient.get().getIntegrationContainer(pod);
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             ExecWatch watch = OpenshiftClient.get().pods()
+                 .inNamespace(OpenshiftClient.get().getNamespace())
+                 .withName(podName)
+                 .inContainer(integrationContainer)
+                 .writingOutput(out)
+                 .exec("mkdir", "-p", path.toString())) {
+            int exitCode = watch.exitCode().get(10, TimeUnit.SECONDS);
+            if (exitCode != 0) {
+                throw new IOException("Failed to create dir at : " + path + " out: " + out + " exit code: " + exitCode);
+            }
+        } catch (Exception e) {
+            throw new IOException("IO error while creating directory in OpenShift pod", e);
+        }
+        return path;
+    }
+
+    @Override
+    public void deleteDirectory(Path directory) throws IOException {
+        String podLabelKey = "app.kubernetes.io/name";
+        final String podName = getPodName(podLabelKey, podLabelValue);
+        final Pod pod = OpenshiftClient.get().getPod(podName);
+        final String integrationContainer = OpenshiftClient.get().getIntegrationContainer(pod);
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             ExecWatch watch = OpenshiftClient.get().pods()
+                 .inNamespace(OpenshiftClient.get().getNamespace())
+                 .withName(podName)
+                 .inContainer(integrationContainer)
+                 .writingOutput(out)
+                 .exec("rm", "-rf", directory.toString())) {
+            int exitCode = watch.exitCode().get(5, TimeUnit.SECONDS);
+            if (exitCode != 0) {
+                throw new IOException("Failed to delete dir: " + directory + " out: " + out + " exit code: " + exitCode);
+            }
+        } catch (Exception e) {
+            throw new IOException("IO error while deleting directory in OpenShift pod", e);
+        }
     }
 
     @Override
     public void deleteFile(Path directory, String filename) throws IOException {
         String filePath = directory.resolve(filename).toAbsolutePath().toString();
-        final String podLabelKey = "app.kubernetes.io/name";
+        String podLabelKey = "app.kubernetes.io/name";
         final String podName = getPodName(podLabelKey, podLabelValue);
         final Pod pod = OpenshiftClient.get().getPod(podName);
         final String integrationContainer = OpenshiftClient.get().getIntegrationContainer(pod);
@@ -129,11 +168,16 @@ public class OpenShiftFileSystem extends FileSystem implements OpenshiftDeployab
                  .exec("rm", "-f", filePath)) {
             int exitCode = watch.exitCode().join();
             if (exitCode != 0) {
-                throw new IOException(" Failed to delete file " + filePath + " Exit code: " + exitCode);
+                throw new IOException("Failed to delete file: " + filePath + " out: " + out + " Exit code: " + exitCode);
             }
         } catch (Exception e) {
-            throw new IOException(" IO error while deleting file in OpenShift pod ", e);
+            throw new IOException("IO error while deleting file in OpenShift pod", e);
         }
+    }
+
+    @Override
+    public Path getRoot()  {
+        return Path.of(directory);
     }
 
     @Override
